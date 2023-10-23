@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>FDR Tool</title>
+    <link
+      href="{{ url_for('static', filename='img/favicons/favicon-32x32.png')}}"
+      rel="icon"
+      sizes="32x32"
+      type="image/png"
+    />
+    <link
+      href="{{ url_for('static', filename='img/favicons/favicon-16x16.png')}}"
+      rel="icon"
+      sizes="16x16"
+      type="image/png"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/style.css')}}"
+    />
+  </head>
+  <body>
+    <div class="container">
+      <div class="title">
+        <h3>Fixture Difficulty Rating (FDR)</h3>
+      </div>
+
+      <div class="bmc">
+        <script
+          type="text/javascript"
+          src="https://cdnjs.buymeacoffee.com/1.0.0/button.prod.min.js"
+          data-name="bmc-button"
+          data-slug="marlonoloo"
+          data-color="#00ff87"
+          data-emoji=""
+          data-font="Cookie"
+          data-text="Buy me a coffee"
+          data-outline-color="#000000"
+          data-font-color="#000000"
+          data-coffee-color="#FFDD00"
+        ></script>
+      </div>
+
+      <form
+        method="get"
+        action="{{ url_for('main.fixtures') }}"
+        class="range-form"
+      >
+        <div class="range-input">
+          <label for="min_gameweek">Min Gameweek</label>
+          <input
+            type="number"
+            name="min_gameweek"
+            id="min_gameweek"
+            value="{{ min_gameweek }}"
+          />
+        </div>
+
+        <div class="range-input">
+          <label for="max_gameweek">Max Gameweek</label>
+          <input
+            type="number"
+            name="max_gameweek"
+            id="max_gameweek"
+            value="{{ max_gameweek }}"
+          />
+        </div>
+
+        <div class="range-button">
+          <input type="submit" value="Update Range" />
+        </div>
+      </form>
+
+      <table class="fdr-table">
+        <thead>
+          <tr>
+            <th class="team">Team</th>
+            {% for gameweek in range(min_gameweek, max_gameweek + 1) %}
+            <th class="opponent">{{ 'GW' ~ gameweek }}</th>
+            {% endfor %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for team in teams %}
+          <tr>
+            <td class="team team-body-name">
+              <img
+                class="team-logo"
+                src="{{ team.team_image }}"
+                alt="{{ team.team_name }} Logo"
+              />
+              <span class="team-name"
+                >{{ team.team_name }} ({{ team_difficulties[team.team_name]
+                }})</span
+              >
+            </td>
+
+            {% for gameweek in range(min_gameweek, max_gameweek + 1) %}
+            <td
+              class="opponent opponent-abbrv"
+              data-fixture-difficulty="{% set fixture = get_fixture(team.team_id, gameweek) %}
+  {% if fixture %}
+      {% set is_home_team = (team.team_id == fixture.home_team_id) %}
+      {% set opponent_team_id = fixture.away_team_id if is_home_team else fixture.home_team_id %}
+      {% set opponent_team = teams | selectattr('team_id', 'equalto', opponent_team_id) | first %}
+      {% set difficulty = opponent_team.away_difficulty if is_home_team else opponent_team.home_difficulty %}
+      {{ difficulty }}
+  {% else %}
+      0
+  {% endif %}"
+              style="background-color: 
+    {% if difficulty == 2 %}
+      rgb(1, 252, 122)
+    {% elif difficulty == 3 %}
+      rgb(231, 231, 231)
+    {% elif difficulty == 4 %}
+      rgb(255, 23, 81)
+    {% elif difficulty == 5 %}
+      rgb(128, 7, 45)
+    {% else %}
+      transparent
+    {% endif %};
+    color: {% if difficulty == 4 or difficulty == 5 %} white; {% else %} black; {% endif %};"
+            >
+              {% set fixture = get_fixture(team.team_id, gameweek) %} {% if
+              fixture %} {% set opponent = fixture.home_team if
+              fixture.away_team.team_id == team.team_id else fixture.away_team
+              %} {{ opponent.abbreviation }} {% if fixture.home_team_id ==
+              team.team_id %}(H){% else %}(A){% endif %} {% else %} No fixture
+              {% endif %}
+            </td>
+
+            {% endfor %}
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </body>
+</html>

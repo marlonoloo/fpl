@@ -1,12 +1,13 @@
 from flask import Flask
 
-from config import Config
 from app.extensions import db, migrate
+from config import config
 
 
-def create_app(config_class=Config):
+def create_app():
     app = Flask(__name__)
-    app.config.from_object(config_class)
+    db_uri = f"mysql+mysqlconnector://{config['user']}:{config['password']}@{config['host']}/{config['database']}?ssl_ca={config['ssl_ca']}"
+    app.config['SQLALCHEMY_DATABASE_URI'] = db_uri
 
     db.init_app(app)
     migrate.init_app(app, db)
